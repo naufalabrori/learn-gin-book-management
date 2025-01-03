@@ -1,0 +1,58 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Output of the go command
+bin/
+tmp/
+*.out
+*.test
+
+# Vendor directory
+/vendor/
+
+# Dependency directories (auto-created by tools like Dep or Glide)
+Gopkg.lock
+Gopkg.toml
+.goenv
+.env
+
+# Logs and databases
+*.log
+*.db
+*.sqlite
+*.sqlite3
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# IDE and editor specific files
+.idea/
+.vscode/
+*.swp
+*~
+
+# Go modules
+go.sum
+
+# Air-specific directories and files
+.air.toml
+.air.conf
+build-errors.log
+
+# Coverage reports
+*.cover
+*.cov
+coverage.out
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+
+# Ignoring configuration files
+.env.*
