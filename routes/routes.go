@@ -28,5 +28,14 @@ func SetupRoutes() *gin.Engine {
 		categoryGroup.DELETE("/:id", controllers.DeleteCategory)
 	}
 
+	bookGroup := r.Group("/books")
+	{
+		bookGroup.GET("/", controllers.GetBooks)
+		bookGroup.POST("/", controllers.CreateBook)
+		bookGroup.GET("/:id", controllers.GetBookByID)
+		bookGroup.PUT("/:id", controllers.UpdateBook)
+		bookGroup.DELETE("/:id", controllers.DeleteBook)
+	}
+
 	return r
 }
