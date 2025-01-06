@@ -1,23 +1,52 @@
 package controllers
 
 import (
+	"learn-go-gin/dto"
 	"learn-go-gin/models"
 	"learn-go-gin/services"
 	"learn-go-gin/utils"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func GetUsers(c *gin.Context) {
-	users, err := services.GetAllUsers()
+	// Get query parameters from request
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1")) // Default page = 1
+	if err != nil || page < 1 {
+		utils.RespondError(c, "Invalid page parameter", http.StatusBadRequest)
+		return
+	}
 
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10")) // Default limit = 10
+	if err != nil || limit < 1 {
+		utils.RespondError(c, "Invalid limit parameter", http.StatusBadRequest)
+		return
+	}
+
+	sortBy := c.DefaultQuery("sort_by", "id")        // Default sorting by "id"
+	sortOrder := c.DefaultQuery("sort_order", "asc") // Default order is "asc"
+
+	// call services to get all users
+	users, total, err := services.GetAllUsers(page, limit, sortBy, sortOrder)
 	if err != nil {
 		utils.RespondError(c, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	utils.RespondSuccess(c, "Fetched all users", users)
+	// mapping to dto
+	var userResponses []dto.UserResponse
+	for _, user := range users {
+		userResponses = append(userResponses, dto.ToUserResponse(&user))
+	}
+
+	response := gin.H{
+		"data":      userResponses,
+		"totalData": total,
+	}
+
+	utils.RespondSuccess(c, "Fetched users successfully", response)
 }
 
 func CreateUser(c *gin.Context) {
@@ -35,7 +64,8 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	utils.RespondSuccess(c, "User created successfully", createdUser)
+	userResponses := dto.ToUserResponse(createdUser)
+	utils.RespondSuccess(c, "User created successfully", userResponses)
 }
 
 func GetUserByID(c *gin.Context) {
@@ -46,7 +76,8 @@ func GetUserByID(c *gin.Context) {
 		utils.RespondError(c, err.Error(), http.StatusNotFound)
 		return
 	} else {
-		utils.RespondSuccess(c, "Fetched user", user)
+		userResponses := dto.ToUserResponse(user)
+		utils.RespondSuccess(c, "Fetched user", userResponses)
 	}
 
 }
@@ -67,7 +98,8 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	utils.RespondSuccess(c, "User updated successfully", updatedUser)
+	userResponses := dto.ToUserResponse(updatedUser)
+	utils.RespondSuccess(c, "User updated successfully", userResponses)
 }
 
 func DeleteUser(c *gin.Context) {

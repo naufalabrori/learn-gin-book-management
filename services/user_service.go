@@ -7,12 +7,19 @@ import (
 	"learn-go-gin/utils"
 )
 
-func GetAllUsers() ([]models.User, error) {
+func GetAllUsers(page int, limit int, sortBy string, sortOrder string) ([]models.User, int64, error) {
 	var users []models.User
-	if err := config.DB.Find(&users).Error; err != nil {
-		return nil, err
+
+	var total int64
+
+	offset := (page - 1) * limit
+	sortQuery := sortBy + " " + sortOrder
+
+	if err := config.DB.Order(sortQuery).Limit(limit).Offset(offset).Find(&users).Error; err != nil {
+		return nil, 0, err
 	}
-	return users, nil
+	total = int64(len(users))
+	return users, total, nil
 }
 
 func GetUserByID(id string) (*models.User, error) {

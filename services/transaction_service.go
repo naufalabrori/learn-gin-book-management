@@ -7,12 +7,20 @@ import (
 	"time"
 )
 
-func GetAllTransactions() ([]models.Transaction, error) {
+func GetAllTransactions(page int, limit int, sortBy string, sortOrder string) ([]models.Transaction, int64, error) {
 	var transactions []models.Transaction
-	if err := config.DB.Find(&transactions).Error; err != nil {
-		return nil, err
+
+	var total int64
+
+	offset := (page - 1) * limit
+	sortQuery := sortBy + " " + sortOrder
+
+	if err := config.DB.Order(sortQuery).Limit(limit).Offset(offset).Find(&transactions).Error; err != nil {
+		return nil, 0, err
 	}
-	return transactions, nil
+
+	total = int64(len(transactions))
+	return transactions, total, nil
 }
 
 func GetTransactionByID(id string) (*models.Transaction, error) {

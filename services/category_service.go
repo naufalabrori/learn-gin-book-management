@@ -6,12 +6,20 @@ import (
 	"learn-go-gin/models"
 )
 
-func GetAllCategories() ([]models.Category, error) {
+func GetAllCategories(page int, limit int, sortBy string, sortOrder string) ([]models.Category, int64, error) {
 	var categories []models.Category
-	if err := config.DB.Find(&categories).Error; err != nil {
-		return nil, err
+
+	var total int64
+
+	offset := (page - 1) * limit
+	sortQuery := sortBy + " " + sortOrder
+
+	if err := config.DB.Order(sortQuery).Limit(limit).Offset(offset).Find(&categories).Error; err != nil {
+		return nil, 0, err
 	}
-	return categories, nil
+
+	total = int64(len(categories))
+	return categories, total, nil
 }
 
 func GetCategoryByID(id string) (*models.Category, error) {

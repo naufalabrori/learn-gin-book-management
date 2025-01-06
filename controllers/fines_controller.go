@@ -5,19 +5,41 @@ import (
 	"learn-go-gin/services"
 	"learn-go-gin/utils"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func GetFines(c *gin.Context) {
-	fines, err := services.GetAllFines()
+	// Get query parameters from request
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1")) // Default page = 1
+	if err != nil || page < 1 {
+		utils.RespondError(c, "Invalid page parameter", http.StatusBadRequest)
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10")) // Default limit = 10
+	if err != nil || limit < 1 {
+		utils.RespondError(c, "Invalid limit parameter", http.StatusBadRequest)
+		return
+	}
+
+	sortBy := c.DefaultQuery("sort_by", "id")        // Default sorting by "id"
+	sortOrder := c.DefaultQuery("sort_order", "asc") // Default order is "asc"
+
+	fines, total, err := services.GetAllFines(page, limit, sortBy, sortOrder)
 
 	if err != nil {
 		utils.RespondError(c, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	utils.RespondSuccess(c, "Fetched all fines", fines)
+	response := gin.H{
+		"data":      fines,
+		"totalData": total,
+	}
+
+	utils.RespondSuccess(c, "Fetched all fines", response)
 }
 
 func GetFinesByTransactionID(c *gin.Context) {

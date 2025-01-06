@@ -6,14 +6,20 @@ import (
 	"learn-go-gin/models"
 )
 
-func GetAllFines() ([]models.Fines, error) {
+func GetAllFines(page int, limit int, sortBy string, sortOrder string) ([]models.Fines, int64, error) {
 	var fines []models.Fines
 
-	if err := config.DB.Find(&fines).Error; err != nil {
-		return nil, errors.New("cannot get finess: " + err.Error())
+	var total int64
+
+	offset := (page - 1) * limit
+	sortQuery := sortBy + " " + sortOrder
+
+	if err := config.DB.Order(sortQuery).Limit(limit).Offset(offset).Find(&fines).Error; err != nil {
+		return nil, 0, errors.New("cannot get finess: " + err.Error())
 	}
 
-	return fines, nil
+	total = int64(len(fines))
+	return fines, total, nil
 }
 
 func GetFinesByID(id string) (*models.Fines, error) {

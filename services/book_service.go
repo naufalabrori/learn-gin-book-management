@@ -6,12 +6,20 @@ import (
 	"learn-go-gin/models"
 )
 
-func GetAllBooks() ([]models.Book, error) {
+func GetAllBooks(page int, limit int, sortBy string, sortOrder string) ([]models.Book, int64, error) {
 	var books []models.Book
-	if err := config.DB.Find(&books).Error; err != nil {
-		return nil, err
+
+	var total int64
+
+	offset := (page - 1) * limit
+	sortQuery := sortBy + " " + sortOrder
+
+	if err := config.DB.Order(sortQuery).Limit(limit).Offset(offset).Find(&books).Error; err != nil {
+		return nil, 0, err
 	}
-	return books, nil
+
+	total = int64(len(books))
+	return books, total, nil
 }
 
 func GetBookByID(id string) (*models.Book, error) {

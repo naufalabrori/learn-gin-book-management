@@ -5,19 +5,41 @@ import (
 	"learn-go-gin/services"
 	"learn-go-gin/utils"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func GetBooks(c *gin.Context) {
-	books, err := services.GetAllBooks()
+	// Get query parameters from request
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1")) // Default page = 1
+	if err != nil || page < 1 {
+		utils.RespondError(c, "Invalid page parameter", http.StatusBadRequest)
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10")) // Default limit = 10
+	if err != nil || limit < 1 {
+		utils.RespondError(c, "Invalid limit parameter", http.StatusBadRequest)
+		return
+	}
+
+	sortBy := c.DefaultQuery("sort_by", "id")        // Default sorting by "id"
+	sortOrder := c.DefaultQuery("sort_order", "asc") // Default order is "asc"
+
+	books, total, err := services.GetAllBooks(page, limit, sortBy, sortOrder)
 
 	if err != nil {
 		utils.RespondError(c, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	utils.RespondSuccess(c, "Fetched all books", books)
+	response := gin.H{
+		"data":      books,
+		"totalData": total,
+	}
+
+	utils.RespondSuccess(c, "Fetched all books", response)
 }
 
 func GetBookByID(c *gin.Context) {
