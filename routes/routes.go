@@ -37,5 +37,15 @@ func SetupRoutes() *gin.Engine {
 		bookGroup.DELETE("/:id", controllers.DeleteBook)
 	}
 
+	transactionGroup := r.Group("/transactions")
+	{
+		transactionGroup.GET("/", controllers.GetTransactions)
+		transactionGroup.POST("/", controllers.CreateTransaction)
+		transactionGroup.GET("/:id", controllers.GetTransactionByID)
+		transactionGroup.PUT("/:id", controllers.UpdateTransaction)
+		transactionGroup.DELETE("/:id", controllers.DeleteTransaction)
+		transactionGroup.POST("/return/:id", controllers.ReturnTransaction)
+	}
+
 	return r
 }
