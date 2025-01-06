@@ -101,5 +101,5 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	utils.RespondSuccess(c, "Login successful", token)
+	utils.RespondSuccess(c, "Login successful", gin.H{"token": token})
 }
