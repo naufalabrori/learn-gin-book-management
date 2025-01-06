@@ -89,17 +89,19 @@ func DeleteUser(user *models.User, id string) error {
 	return nil
 }
 
-func Login(email, password string) error {
+func Login(email, password string) (*string, error) {
 	// find user by email
 	var user models.User
 	if err := config.DB.Where("email = ?", email).First(&user).Error; err != nil {
-		return errors.New("user not found")
+		return nil, errors.New("user not found")
 	}
 
 	// check password
 	if !utils.CheckPasswordHash(password, user.Password) {
-		return errors.New("invalid password")
+		return nil, errors.New("invalid password")
 	}
 
-	return nil
+	token, _ := utils.GenerateJWTToken(user.ID)
+
+	return &token, nil
 }

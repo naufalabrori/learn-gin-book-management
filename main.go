@@ -10,5 +10,6 @@ func main() {
 	config.ConnectDB()
 	database.Migrate()
 	r := routes.SetupRoutes()
+	r.Use()
 	r.Run(":8080")
 }

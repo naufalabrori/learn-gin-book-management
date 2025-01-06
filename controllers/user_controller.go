@@ -95,11 +95,11 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	err := services.Login(input.Email, input.Password)
+	token, err := services.Login(input.Email, input.Password)
 	if err != nil {
 		utils.RespondError(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	utils.RespondSuccess(c, "Login successful", nil)
+	utils.RespondSuccess(c, "Login successful", token)
 }
