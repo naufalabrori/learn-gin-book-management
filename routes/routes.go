@@ -47,5 +47,15 @@ func SetupRoutes() *gin.Engine {
 		transactionGroup.POST("/return/:id", controllers.ReturnTransaction)
 	}
 
+	finesGroup := r.Group("/fines")
+	{
+		finesGroup.GET("/", controllers.GetFines)
+		finesGroup.POST("/", controllers.CreateFines)
+		finesGroup.GET("/:id", controllers.GetFinesByID)
+		finesGroup.PUT("/:id", controllers.UpdateFines)
+		finesGroup.DELETE("/:id", controllers.DeleteFines)
+		finesGroup.GET("/transaction/:transactionId", controllers.GetFinesByTransactionID)
+	}
+
 	return r
 }

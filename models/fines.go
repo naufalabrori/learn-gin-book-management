@@ -6,7 +6,7 @@ type Fines struct {
 	ID            uint      `json:"id" gorm:"primary_key"`
 	TransactionID uint      `json:"transactionId" gorm:"not null"`
 	Amount        float64   `json:"amount" gorm:"not null"`
-	PaidDate      time.Time `json:"paidDate"`
+	PaidDate      time.Time `json:"paidDate" gorm:"autoCreateTime"`
 	CreatedDate   time.Time `json:"createdDate" gorm:"autoCreateTime"`
 	ModifiedDate  time.Time `json:"modifiedDate" gorm:"autoUpdateTime"`
 }
