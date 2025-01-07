@@ -37,9 +37,20 @@ func CreateTransaction(transaction *models.Transaction) (*models.Transaction, er
 		return nil, errors.New("transaction already exists")
 	}
 
+	var book models.Book
+	if err := config.DB.First(&book, transaction.BookID).Error; err != nil {
+		return nil, errors.New("book not found")
+	}
+
 	if err := config.DB.Create(transaction).Error; err != nil {
 		return nil, errors.New("cannot create transaction: " + err.Error())
 	}
+
+	book.AvailableQuantity -= 1
+	if err := config.DB.Save(&book).Error; err != nil {
+		return nil, errors.New("cannot update book quantity: " + err.Error())
+	}
+
 	return transaction, nil
 }
 
@@ -103,8 +114,18 @@ func ReturnTransaction(transaction *models.Transaction, id string) error {
 		transaction.Status = "Returned"
 	}
 
+	var book models.Book
+	if err := config.DB.First(&book, transaction.BookID).Error; err != nil {
+		return errors.New("book not found")
+	}
+
 	if err := config.DB.Save(transaction).Error; err != nil {
 		return errors.New("cannot return transaction: " + err.Error())
+	}
+
+	book.AvailableQuantity += 1
+	if err := config.DB.Save(&book).Error; err != nil {
+		return errors.New("cannot update book quantity: " + err.Error())
 	}
 
 	return nil
