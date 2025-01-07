@@ -127,11 +127,16 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, err := services.Login(input.Email, input.Password)
+	user, token, err := services.Login(input.Email, input.Password)
 	if err != nil {
 		utils.RespondError(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	utils.RespondSuccess(c, "Login successful", gin.H{"token": token})
+	data := gin.H{
+		"token": token,
+		"user":  dto.ToUserResponse(user),
+	}
+
+	utils.RespondSuccess(c, "Login successful", data)
 }
