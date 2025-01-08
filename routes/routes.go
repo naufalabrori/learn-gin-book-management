@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes() *gin.Engine {
-	r := gin.Default()
+func SetupRoutes(r *gin.Engine) *gin.Engine {
+	// r := gin.Default()
 
 	publicGroup := r.Group("/")
 	{
