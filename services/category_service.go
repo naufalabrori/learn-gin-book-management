@@ -6,19 +6,27 @@ import (
 	"learn-go-gin/models"
 )
 
-func GetAllCategories(page int, limit int, sortBy string, sortOrder string) ([]models.Category, int64, error) {
+func GetAllCategories(page int, limit int, sortBy string, sortOrder string, search string) ([]models.Category, int64, error) {
 	var categories []models.Category
-
 	var total int64
 
 	offset := (page - 1) * limit
 	sortQuery := sortBy + " " + sortOrder
 
-	if err := config.DB.Order(sortQuery).Limit(limit).Offset(offset).Find(&categories).Error; err != nil {
+	// Query untuk total data (tanpa limit dan offset)
+	if err := config.DB.Model(&models.Category{}).
+		Where("category_name ILIKE ?", "%"+search+"%").
+		Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	total = int64(len(categories))
+	// Query untuk data dengan limit, offset, dan sorting
+	if err := config.DB.Where(
+		"category_name ILIKE ?", "%"+search+"%",
+	).Order(sortQuery).Limit(limit).Offset(offset).Find(&categories).Error; err != nil {
+		return nil, 0, err
+	}
+
 	return categories, total, nil
 }
 

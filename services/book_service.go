@@ -6,19 +6,29 @@ import (
 	"learn-go-gin/models"
 )
 
-func GetAllBooks(page int, limit int, sortBy string, sortOrder string) ([]models.Book, int64, error) {
+func GetAllBooks(page int, limit int, sortBy string, sortOrder string, search string) ([]models.Book, int64, error) {
 	var books []models.Book
-
 	var total int64
 
 	offset := (page - 1) * limit
 	sortQuery := sortBy + " " + sortOrder
 
-	if err := config.DB.Order(sortQuery).Limit(limit).Offset(offset).Find(&books).Error; err != nil {
+	// Query untuk total data (tanpa limit dan offset)
+	if err := config.DB.Model(&models.Book{}).
+		Where("title ILIKE ? OR author ILIKE ? OR isbn ILIKE ? OR publisher ILIKE ? OR published_year ILIKE ?",
+			"%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%").
+		Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	total = int64(len(books))
+	// Query untuk data dengan limit, offset, dan sorting
+	if err := config.DB.Where(
+		"title ILIKE ? OR author ILIKE ? OR isbn ILIKE ? OR publisher ILIKE ? OR published_year ILIKE ?",
+		"%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%",
+	).Order(sortQuery).Limit(limit).Offset(offset).Find(&books).Error; err != nil {
+		return nil, 0, err
+	}
+
 	return books, total, nil
 }
 

@@ -7,19 +7,33 @@ import (
 	"time"
 )
 
-func GetAllTransactions(page int, limit int, sortBy string, sortOrder string) ([]models.Transaction, int64, error) {
+func GetAllTransactions(page int, limit int, sortBy string, sortOrder string, search string) ([]models.Transaction, int64, error) {
 	var transactions []models.Transaction
-
 	var total int64
 
 	offset := (page - 1) * limit
 	sortQuery := sortBy + " " + sortOrder
 
-	if err := config.DB.Order(sortQuery).Limit(limit).Offset(offset).Find(&transactions).Error; err != nil {
+	// Query untuk total data (tanpa limit dan offset)
+	if err := config.DB.Model(&models.Transaction{}).
+		Where("status ILIKE ?", "%"+search+"%").
+		Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	total = int64(len(transactions))
+	// Query untuk data dengan limit, offset, sorting, dan join dengan tabel users dan books
+	if err := config.DB.Table("transactions").
+		Joins("LEFT JOIN users ON users.id = transactions.user_id").
+		Joins("LEFT JOIN books ON books.id = transactions.book_id").
+		Where("transactions.status ILIKE ?", "%"+search+"%").
+		Order(sortQuery).
+		Limit(limit).
+		Offset(offset).
+		Select("transactions.*, users.email, books.title as book_title"). // Pilih kolom yang diinginkan
+		Find(&transactions).Error; err != nil {
+		return nil, 0, err
+	}
+
 	return transactions, total, nil
 }
 

@@ -6,19 +6,29 @@ import (
 	"learn-go-gin/models"
 )
 
-func GetAllFines(page int, limit int, sortBy string, sortOrder string) ([]models.Fines, int64, error) {
+func GetAllFines(page int, limit int, sortBy string, sortOrder string, search string) ([]models.Fines, int64, error) {
 	var fines []models.Fines
-
 	var total int64
 
 	offset := (page - 1) * limit
 	sortQuery := sortBy + " " + sortOrder
 
-	if err := config.DB.Order(sortQuery).Limit(limit).Offset(offset).Find(&fines).Error; err != nil {
-		return nil, 0, errors.New("cannot get finess: " + err.Error())
+	// Query untuk total data (tanpa limit dan offset)
+	if err := config.DB.Model(&models.Fines{}).
+		Where("transaction_id ILIKE ? OR amount ILIKE ?", "%"+search+"%", "%"+search+"%").
+		Count(&total).Error; err != nil {
+		return nil, 0, err
 	}
 
-	total = int64(len(fines))
+	// Query untuk data dengan limit, offset, dan sorting
+	if err := config.DB.Where("transaction_id ILIKE ? OR amount ILIKE ?", "%"+search+"%", "%"+search+"%").
+		Order(sortQuery).
+		Limit(limit).
+		Offset(offset).
+		Find(&fines).Error; err != nil {
+		return nil, 0, err
+	}
+
 	return fines, total, nil
 }
 

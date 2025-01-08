@@ -27,7 +27,9 @@ func GetBooks(c *gin.Context) {
 	sortBy := c.DefaultQuery("sort_by", "id")        // Default sorting by "id"
 	sortOrder := c.DefaultQuery("sort_order", "asc") // Default order is "asc"
 
-	books, total, err := services.GetAllBooks(page, limit, sortBy, sortOrder)
+	search := c.DefaultQuery("search", "")
+
+	books, total, err := services.GetAllBooks(page, limit, sortBy, sortOrder, search)
 
 	if err != nil {
 		utils.RespondError(c, err.Error(), http.StatusInternalServerError)
