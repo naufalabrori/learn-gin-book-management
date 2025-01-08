@@ -7,18 +7,29 @@ import (
 	"learn-go-gin/utils"
 )
 
-func GetAllUsers(page int, limit int, sortBy string, sortOrder string) ([]models.User, int64, error) {
+func GetAllUsers(page int, limit int, sortBy string, sortOrder string, search string) ([]models.User, int64, error) {
 	var users []models.User
-
 	var total int64
 
 	offset := (page - 1) * limit
 	sortQuery := sortBy + " " + sortOrder
 
-	if err := config.DB.Order(sortQuery).Limit(limit).Offset(offset).Find(&users).Error; err != nil {
+	// Query untuk total data (tanpa limit dan offset)
+	if err := config.DB.Model(&models.User{}).
+		Where("name ILIKE ? OR email ILIKE ? OR role ILIKE ? OR phone_number ILIKE ?",
+			"%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%").
+		Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	total = int64(len(users))
+
+	// Query untuk data dengan limit, offset, dan sorting
+	if err := config.DB.Where(
+		"name ILIKE ? OR email ILIKE ? OR role ILIKE ? OR phone_number ILIKE ?",
+		"%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%",
+	).Order(sortQuery).Limit(limit).Offset(offset).Find(&users).Error; err != nil {
+		return nil, 0, err
+	}
+
 	return users, total, nil
 }
 

@@ -28,8 +28,10 @@ func GetUsers(c *gin.Context) {
 	sortBy := c.DefaultQuery("sort_by", "id")        // Default sorting by "id"
 	sortOrder := c.DefaultQuery("sort_order", "asc") // Default order is "asc"
 
+	search := c.DefaultQuery("search", "")
+
 	// call services to get all users
-	users, total, err := services.GetAllUsers(page, limit, sortBy, sortOrder)
+	users, total, err := services.GetAllUsers(page, limit, sortBy, sortOrder, search)
 	if err != nil {
 		utils.RespondError(c, err.Error(), http.StatusInternalServerError)
 		return

@@ -5,18 +5,16 @@ import (
 	"time"
 )
 
-// UserResponse adalah DTO untuk menampilkan data user tanpa kolom Password
 type UserResponse struct {
 	ID           uint      `json:"id"`
 	Name         string    `json:"name"`
 	Email        string    `json:"email"`
 	Role         string    `json:"role"`
-	PhoneNumber  string    `json:"phoneNumber"`
-	CreatedDate  time.Time `json:"createdDate"`
-	ModifiedDate time.Time `json:"modifiedDate"`
+	PhoneNumber  string    `json:"phone_number"`
+	CreatedDate  time.Time `json:"created_date"`
+	ModifiedDate time.Time `json:"modified_date"`
 }
 
-// ToUserResponse mengonversi model User ke dalam bentuk UserResponse
 func ToUserResponse(user *models.User) UserResponse {
 	return UserResponse{
 		ID:           user.ID,
