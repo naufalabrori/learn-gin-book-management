@@ -7,7 +7,8 @@ import (
 type TransactionWithUserAndBook struct {
 	ID           uint      `json:"id"`
 	UserID       uint      `json:"user_id"`
-	Email        string    `json:"email"`
+	UserEmail    string    `json:"user_email"`
+	UserName     string    `json:"user_name"`
 	BookID       uint      `json:"book_id"`
 	BookTitle    string    `json:"book_title"`
 	BorrowedDate time.Time `json:"borrowed_date"`

@@ -16,8 +16,10 @@ func GetAllTransactions(page int, limit int, sortBy string, sortOrder string, se
 	sortQuery := sortBy + " " + sortOrder
 
 	// Query untuk total data (tanpa limit dan offset)
-	if err := config.DB.Model(&models.Transaction{}).
-		Where("status ILIKE ?", "%"+search+"%").
+	if err := config.DB.Table("transactions").
+		Joins("LEFT JOIN users ON users.id = transactions.user_id").
+		Joins("LEFT JOIN books ON books.id = transactions.book_id").
+		Where("transactions.status ILIKE ? OR users.email ILIKE ? OR users.name ILIKE ? OR books.title ILIKE ?", "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%").
 		Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
@@ -26,11 +28,11 @@ func GetAllTransactions(page int, limit int, sortBy string, sortOrder string, se
 	if err := config.DB.Table("transactions").
 		Joins("LEFT JOIN users ON users.id = transactions.user_id").
 		Joins("LEFT JOIN books ON books.id = transactions.book_id").
-		Where("transactions.status ILIKE ?", "%"+search+"%").
+		Where("transactions.status ILIKE ? OR users.email ILIKE ? OR users.name ILIKE ? OR books.title ILIKE ?", "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%").
 		Order(sortQuery).
 		Limit(limit).
 		Offset(offset).
-		Select("transactions.*, users.email, books.title as book_title"). // Pilih kolom yang diinginkan
+		Select("transactions.*, users.email as user_email, users.name as user_name, books.title as book_title"). // Pilih kolom yang diinginkan
 		Find(&transactions).Error; err != nil {
 		return nil, 0, err
 	}
