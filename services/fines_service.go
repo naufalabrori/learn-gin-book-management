@@ -15,13 +15,13 @@ func GetAllFines(page int, limit int, sortBy string, sortOrder string, search st
 
 	// Query untuk total data (tanpa limit dan offset)
 	if err := config.DB.Model(&models.Fines{}).
-		Where("transaction_id ILIKE ? OR amount ILIKE ?", "%"+search+"%", "%"+search+"%").
+		Where("CAST(transaction_id AS TEXT) ILIKE ? OR CAST(amount AS TEXT) ILIKE ?", "%"+search+"%", "%"+search+"%").
 		Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
 	// Query untuk data dengan limit, offset, dan sorting
-	if err := config.DB.Where("transaction_id ILIKE ? OR amount ILIKE ?", "%"+search+"%", "%"+search+"%").
+	if err := config.DB.Where("CAST(transaction_id AS TEXT) ILIKE ? OR CAST(amount AS TEXT) ILIKE ?", "%"+search+"%", "%"+search+"%").
 		Order(sortQuery).
 		Limit(limit).
 		Offset(offset).
