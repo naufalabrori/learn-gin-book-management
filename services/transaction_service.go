@@ -3,12 +3,13 @@ package services
 import (
 	"errors"
 	"learn-go-gin/config"
+	"learn-go-gin/dto"
 	"learn-go-gin/models"
 	"time"
 )
 
-func GetAllTransactions(page int, limit int, sortBy string, sortOrder string, search string) ([]models.Transaction, int64, error) {
-	var transactions []models.Transaction
+func GetAllTransactions(page int, limit int, sortBy string, sortOrder string, search string) ([]dto.TransactionWithUserAndBook, int64, error) {
+	var transactions []dto.TransactionWithUserAndBook
 	var total int64
 
 	offset := (page - 1) * limit
