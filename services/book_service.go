@@ -53,6 +53,7 @@ func CreateBook(book *models.Book) (*models.Book, error) {
 		return nil, errors.New("category not found")
 	}
 
+	book.AvailableQuantity = book.Quantity
 	// Create book
 	if err := config.DB.Create(book).Error; err != nil {
 		return nil, errors.New("cannot create book: " + err.Error())
