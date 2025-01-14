@@ -3,28 +3,37 @@ package services
 import (
 	"errors"
 	"learn-go-gin/config"
+	"learn-go-gin/dto"
 	"learn-go-gin/models"
 )
 
-func GetAllFines(page int, limit int, sortBy string, sortOrder string, search string) ([]models.Fines, int64, error) {
-	var fines []models.Fines
+func GetAllFines(page int, limit int, sortBy string, sortOrder string, search string) ([]dto.FinesWithTransaction, int64, error) {
+	var fines []dto.FinesWithTransaction
 	var total int64
 
 	offset := (page - 1) * limit
 	sortQuery := sortBy + " " + sortOrder
 
 	// Query untuk total data (tanpa limit dan offset)
-	if err := config.DB.Model(&models.Fines{}).
-		Where("CAST(transaction_id AS TEXT) ILIKE ? OR CAST(amount AS TEXT) ILIKE ?", "%"+search+"%", "%"+search+"%").
+	if err := config.DB.Table("fines").
+		Joins("LEFT JOIN transactions ON transactions.id = fines.transaction_id").
+		Joins("LEFT JOIN users ON users.id = transactions.user_id").
+		Joins("LEFT JOIN books ON books.id = transactions.book_id").
+		Where("CAST(fines.amount AS TEXT) ILIKE ? OR users.email ILIKE ? OR users.name ILIKE ? OR books.title ILIKE ?", "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%").
 		Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
 	// Query untuk data dengan limit, offset, dan sorting
-	if err := config.DB.Where("CAST(transaction_id AS TEXT) ILIKE ? OR CAST(amount AS TEXT) ILIKE ?", "%"+search+"%", "%"+search+"%").
+	if err := config.DB.Table("fines").
+		Joins("LEFT JOIN transactions ON transactions.id = fines.transaction_id").
+		Joins("LEFT JOIN users ON users.id = transactions.user_id").
+		Joins("LEFT JOIN books ON books.id = transactions.book_id").
+		Where("CAST(fines.amount AS TEXT) ILIKE ? OR users.email ILIKE ? OR users.name ILIKE ? OR books.title ILIKE ?", "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%").
 		Order(sortQuery).
 		Limit(limit).
 		Offset(offset).
+		Select("fines.*, users.email as user_email, users.name as user_name, books.title as book_title, transactions.borrowed_date as borrowed_date, transactions.due_date as due_date, transactions.returned_date as returned_date").
 		Find(&fines).Error; err != nil {
 		return nil, 0, err
 	}
@@ -69,7 +78,7 @@ func UpdateFines(input *models.Fines, id string) (*models.Fines, error) {
 	if input.Amount != 0 {
 		existingFines.Amount = input.Amount
 	}
-	if input.PaidDate.IsZero() {
+	if !input.PaidDate.IsZero() {
 		existingFines.PaidDate = input.PaidDate
 	}
 

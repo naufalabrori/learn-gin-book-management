@@ -28,11 +28,12 @@ func GetAllTransactions(page int, limit int, sortBy string, sortOrder string, se
 	if err := config.DB.Table("transactions").
 		Joins("LEFT JOIN users ON users.id = transactions.user_id").
 		Joins("LEFT JOIN books ON books.id = transactions.book_id").
+		Joins("LEFT JOIN fines ON fines.transaction_id = transactions.id").
 		Where("transactions.status ILIKE ? OR users.email ILIKE ? OR users.name ILIKE ? OR books.title ILIKE ?", "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%").
 		Order(sortQuery).
 		Limit(limit).
 		Offset(offset).
-		Select("transactions.*, users.email as user_email, users.name as user_name, books.title as book_title"). // Pilih kolom yang diinginkan
+		Select("transactions.*, users.email as user_email, users.name as user_name, books.title as book_title, fines.paid_date as fines_paid_date").
 		Find(&transactions).Error; err != nil {
 		return nil, 0, err
 	}
