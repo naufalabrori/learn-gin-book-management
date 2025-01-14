@@ -166,3 +166,26 @@ func UploadUserImage(c *gin.Context) {
 	userResponses := dto.ToUserResponse(uploadImage)
 	utils.RespondSuccess(c, "User Image Upload successfully", userResponses)
 }
+
+func ChangePassword(c *gin.Context) {
+	var input struct {
+		OldPassword string `json:"old_password" binding:"required"`
+		NewPassword string `json:"new_password" binding:"required"`
+	}
+
+	id := c.Param("id")
+
+	// Bind JSON input
+	if err := c.ShouldBindJSON(&input); err != nil {
+		utils.RespondError(c, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
+	err := services.ChangePassword(id, input.OldPassword, input.NewPassword)
+	if err != nil {
+		utils.RespondError(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.RespondSuccess(c, "Password changed successfully", nil)
+}

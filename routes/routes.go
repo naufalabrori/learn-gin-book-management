@@ -27,6 +27,7 @@ func SetupRoutes(r *gin.Engine) *gin.Engine {
 		userGroup.PUT("/:id", controllers.UpdateUser)
 		userGroup.DELETE("/:id", controllers.DeleteUser)
 		userGroup.POST("/images/:id", controllers.UploadUserImage)
+		userGroup.POST("/change-password/:id", controllers.ChangePassword)
 	}
 
 	categoryGroup := r.Group("/categories").Use(utils.JWTAuthMiddleware())

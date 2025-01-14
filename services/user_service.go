@@ -200,3 +200,30 @@ func UserImage(id string, file multipart.FileHeader) (*models.User, error) {
 
 	return &user, nil
 }
+
+func ChangePassword(id string, oldPassword string, newPassword string) error {
+	// find user by id
+	var user models.User
+	if err := config.DB.First(&user, id).Error; err != nil {
+		return errors.New("user not found")
+	}
+
+	// check password
+	if !utils.CheckPasswordHash(oldPassword, user.Password) {
+		return errors.New("invalid old password")
+	}
+
+	// hash new password
+	hashedPassword, err := utils.HashPassword(newPassword)
+	if err != nil {
+		return errors.New("failed to hash password")
+	}
+
+	// update password
+	user.Password = hashedPassword
+	if err := config.DB.Save(&user).Error; err != nil {
+		return errors.New("cannot update user: " + err.Error())
+	}
+
+	return nil
+}
