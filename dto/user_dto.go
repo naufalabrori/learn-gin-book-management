@@ -11,6 +11,7 @@ type UserResponse struct {
 	Email        string    `json:"email"`
 	Role         string    `json:"role"`
 	PhoneNumber  string    `json:"phone_number"`
+	Image        string    `json:"image"`
 	CreatedDate  time.Time `json:"created_date"`
 	ModifiedDate time.Time `json:"modified_date"`
 }
@@ -22,6 +23,7 @@ func ToUserResponse(user *models.User) UserResponse {
 		Email:        user.Email,
 		Role:         user.Role,
 		PhoneNumber:  user.PhoneNumber,
+		Image:        user.Image,
 		CreatedDate:  user.CreatedDate,
 		ModifiedDate: user.ModifiedDate,
 	}

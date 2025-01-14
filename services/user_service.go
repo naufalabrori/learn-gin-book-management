@@ -2,9 +2,15 @@ package services
 
 import (
 	"errors"
+	"fmt"
+	"io"
 	"learn-go-gin/config"
 	"learn-go-gin/models"
 	"learn-go-gin/utils"
+	"mime/multipart"
+	"os"
+	"path/filepath"
+	"time"
 )
 
 func GetAllUsers(page int, limit int, sortBy string, sortOrder string, search string) ([]models.User, int64, error) {
@@ -84,6 +90,12 @@ func UpdateUser(input *models.User, id string) (*models.User, error) {
 		}
 		existingUser.Password = hashedPassword
 	}
+	if input.Role != "" {
+		existingUser.Role = input.Role
+	}
+	if input.PhoneNumber != "" {
+		existingUser.PhoneNumber = input.PhoneNumber
+	}
 
 	// Save updates
 	if err := config.DB.Save(&existingUser).Error; err != nil {
@@ -122,4 +134,69 @@ func Login(email, password string) (*models.User, *string, error) {
 	token, _ := utils.GenerateJWTToken(user.ID)
 
 	return &user, &token, nil
+}
+
+func UserImage(id string, file multipart.FileHeader) (*models.User, error) {
+	// find user by id
+	var user models.User
+	if err := config.DB.First(&user, id).Error; err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	// Validasi ukuran file (misalnya maksimum 5 MB)
+	maxFileSize := int64(5 << 20) // 5 MB
+	if file.Size > maxFileSize {
+		return nil, errors.New("file size exceeds limit of 5 mb")
+	}
+
+	// Validasi tipe file (misalnya hanya menerima jpg, png)
+	allowedExtensions := []string{".jpg", ".jpeg", ".png"}
+	fileExtension := filepath.Ext(file.Filename)
+	valid := false
+	for _, ext := range allowedExtensions {
+		if ext == fileExtension {
+			valid = true
+			break
+		}
+	}
+	if !valid {
+		return nil, errors.New("invalid file type")
+	}
+
+	// Tentukan lokasi penyimpanan
+	uploadDir := "./uploads/images"
+	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
+		os.MkdirAll(uploadDir, os.ModePerm) // Buat folder jika belum ada
+	}
+
+	// Buat nama file yang unik
+	timestamp := time.Now().Unix()
+	newFileName := fmt.Sprintf("%d%s", timestamp, fileExtension)
+	filePath := filepath.Join(uploadDir, newFileName)
+
+	// Buka file untuk disalin
+	srcFile, err := file.Open()
+	if err != nil {
+		return nil, fmt.Errorf("failed to open uploaded file: %v", err)
+	}
+	defer srcFile.Close()
+
+	// Simpan file ke server
+	destFile, err := os.Create(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create file on server: %v", err)
+	}
+	defer destFile.Close()
+
+	if _, err := io.Copy(destFile, srcFile); err != nil {
+		return nil, fmt.Errorf("failed to save file: %v", err)
+	}
+
+	// Perbarui kolom image pada user
+	user.Image = newFileName
+	if err := config.DB.Save(&user).Error; err != nil {
+		return nil, fmt.Errorf("cannot update user: %v", err)
+	}
+
+	return &user, nil
 }

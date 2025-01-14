@@ -25,6 +25,8 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
+	r.Static("/uploads", "./uploads")
+
 	routes.SetupRoutes(r)
 
 	r.Run(":8080")

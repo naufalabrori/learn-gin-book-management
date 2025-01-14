@@ -9,6 +9,7 @@ type User struct {
 	Password     string    `json:"password" gorm:"size:100;not null"`
 	Role         string    `json:"role" gorm:"size:100;not null"`
 	PhoneNumber  string    `json:"phone_number" gorm:"size:20"`
+	Image        string    `json:"images" gorm:"size:50"`
 	CreatedDate  time.Time `json:"created_date" gorm:"autoCreateTime"`
 	ModifiedDate time.Time `json:"modified_date" gorm:"autoUpdateTime"`
 }

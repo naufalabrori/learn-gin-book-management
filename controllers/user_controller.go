@@ -37,12 +37,18 @@ func GetUsers(c *gin.Context) {
 		return
 	}
 
-	// mapping to dto
+	// Mapping to dto
 	var userResponses []dto.UserResponse
 	for _, user := range users {
 		userResponses = append(userResponses, dto.ToUserResponse(&user))
 	}
 
+	// Jika userResponses kosong, set ke array kosong
+	if len(userResponses) == 0 {
+		userResponses = make([]dto.UserResponse, 0) // Pastikan array kosong, bukan nil
+	}
+
+	// Buat respons
 	response := gin.H{
 		"data":      userResponses,
 		"totalData": total,
@@ -141,4 +147,22 @@ func Login(c *gin.Context) {
 	}
 
 	utils.RespondSuccess(c, "Login successful", data)
+}
+
+func UploadUserImage(c *gin.Context) {
+	id := c.Param("id")
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Failed to get file"})
+		return
+	}
+
+	uploadImage, err := services.UserImage(id, *file)
+	if err != nil {
+		utils.RespondError(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	userResponses := dto.ToUserResponse(uploadImage)
+	utils.RespondSuccess(c, "User Image Upload successfully", userResponses)
 }
