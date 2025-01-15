@@ -30,6 +30,10 @@ func GenerateJWTToken(userID uint) (string, error) {
 
 func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if c.Request.Method == http.MethodOptions {
+			c.Next() // Lewati pengecekan untuk OPTIONS request
+			return
+		}
 		// Get token from header
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {

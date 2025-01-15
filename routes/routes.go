@@ -7,8 +7,29 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(r *gin.Engine) *gin.Engine {
-	// r := gin.Default()
+func SetupRoutes() *gin.Engine {
+	r := gin.Default()
+
+	r.Use(CORS())
+
+	//Middleware CORS
+	// r.Use(cors.New(cors.Config{
+	// 	AllowOrigins:     []string{"http://localhost:3000"},
+	// 	AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	// 	AllowHeaders:     []string{"Content-Type", "Authorization"},
+	// 	ExposeHeaders:    []string{"Content-Length"},
+	// 	AllowCredentials: true,
+	// 	MaxAge:           12 * time.Hour,
+	// }))
+
+	// Handle OPTIONS (Preflight)
+	// r.OPTIONS("/*path", func(c *gin.Context) {
+	// 	c.Header("Access-Control-Allow-Origin", "http://localhost:3000")
+	// 	c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	// 	c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	// 	c.Header("Access-Control-Allow-Credentials", "true")
+	// 	c.Status(http.StatusNoContent)
+	// })
 
 	publicGroup := r.Group("/")
 	{
@@ -64,5 +85,22 @@ func SetupRoutes(r *gin.Engine) *gin.Engine {
 		finesGroup.GET("/transaction/:transactionId", controllers.GetFinesByTransactionID)
 	}
 
+	r.Static("/uploads", "./uploads")
+
 	return r
+}
+func CORS() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
 }
